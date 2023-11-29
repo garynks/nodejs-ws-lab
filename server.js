@@ -4,6 +4,7 @@ const { Server: WebSocketServer } = require("ws");
 const express = require("express");
 const http = require("http");
 const ParcelBundler = require("parcel-bundler");
+const { frame } = require("ws/lib/sender");
 
 const PORT = process.env.PORT || 8080;
 const PUBLIC_DIR = "public";
@@ -32,11 +33,16 @@ function setupWSServer(server) {
     server,
     autoAcceptConnections: false
   });
-  let actorCoordinates = { x: 100, y: 100 };
+  let actorCoordinates = {};
   wss.on("connection", (ws) => {
     ws.on("message", (rawMsg) => {
       console.log(`RECV: ${rawMsg}`);
       const incommingMessage = JSON.parse(rawMsg);
+      actorCoordinates[incommingMessage.id] = {
+        x: incommingMessage.x,
+        y: incommingMessage.y,
+        frame: incommingMessage.frame
+      }
       actorCoordinates.x = incommingMessage.x;
       actorCoordinates.y = incommingMessage.y;
       wss.clients.forEach((wsClient) => {
